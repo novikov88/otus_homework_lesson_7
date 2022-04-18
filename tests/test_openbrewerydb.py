@@ -2,6 +2,7 @@
 Проверка сервиса https://www.openbrewerydb.org/
 Проверки включают в себя:
 - Проверка статуса ответа
+- Валидация схемы
 - Проверка наличия городов
 - Проверка нескольких пивоварен на наличие в вебсайте "http"
 - Проверка кодировки
@@ -10,6 +11,7 @@
 """
 import requests
 import pytest
+from jsonschema import validate
 
 r = requests.get('https://api.openbrewerydb.org/breweries')
 
@@ -17,6 +19,35 @@ r = requests.get('https://api.openbrewerydb.org/breweries')
 # status code check
 def test_check_status_base_url():
     assert r.status_code == 200
+
+
+# schema validation
+def test_schema_check():
+    schema = {
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "name": {"type": "string"},
+            "brewery_type": {"type": "string"},
+            "street": {"type": ["string", "null"]},
+            "address_2": {"type": ["string", "null"]},
+            "address_3": {"type": ["string", "null"]},
+            "city": {"type": "string"},
+            "state": {"type": "string"},
+            "county_province": {"type": ["string", "null"]},
+            "postal_code": {"type": "string"},
+            "country": {"type": "string"},
+            "longitude": {"type": ["string", "null"]},
+            "latitude": {"type": ["string", "null"]},
+            "phone": {"type": ["string", "null"]},
+            "website_url": {"type": ["string", "null"]},
+            "updated_at": {"type": "string"},
+            "created_at": {"type": "string"}
+        },
+
+    }
+    for value in range(len(r.json())):
+        validate(instance=r.json()[value], schema=schema)
 
 
 # city check
